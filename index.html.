@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1730">
+<title>ChemSafe School - Tủ hóa chất thông minh</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
+header{background:linear-gradient(120deg,#0b1730,#164e83);color:white;padding:24px 16px}
+.wrap{max-width:1100px;margin:auto}
+h1{margin:0;font-size:28px}
+header p{color:#dbeafe;font-size:14px}
+main{max-width:1100px;margin:20px auto;padding:0 14px}
+.notice{padding:14px;background:#dbeafe;color:#1e40af;border-radius:10px;font-size:13px;line-height:1.6;margin-bottom:18px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.card,.panel{background:white;border:1px solid #e2e8f0;border-radius:13px;padding:16px;box-shadow:0 4px 14px #0f172a0a}
+.label{font-size:12px;color:#64748b}
+.number{font-size:27px;font-weight:bold;margin-top:8px}
+.columns{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.panel{margin-bottom:16px}
+h2{font-size:18px;margin:0 0 14px}
+.list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.chemical{border:1px solid #e2e8f0;border-radius:11px;padding:13px;min-width:0}
+.chemical h3{font-size:16px;margin:12px 0 5px}
+.small{font-size:12px;color:#64748b;line-height:1.6}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:11px;font-weight:bold}
+.available{background:#dcfce7;color:#166534}
+.borrowed{background:#fef3c7;color:#92400e}
+button{border:0;border-radius:8px;padding:11px 12px;font-weight:bold;cursor:pointer}
+.primary{background:#2563eb;color:white}
+.secondary{background:#e0e7ff;color:#1e40af}
+.danger{background:#fee2e2;color:#991b1b}
+.full{width:100%;margin-top:12px}
+input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;background:white;margin:5px 0 13px;font-size:14px}
+label{font-size:13px;font-weight:bold}
+.status{background:#f8fafc;padding:12px;border-radius:9px;margin-top:12px;font-size:13px;line-height:2}
+.log{border-left:3px solid #60a5fa;background:#f8fafc;padding:10px;margin-top:9px;border-radius:0 7px 7px 0;font-size:12px;overflow-wrap:anywhere}
+footer{text-align:center;color:#64748b;padding:20px;font-size:12px}
+#message{display:none;background:#0f172a;color:white;padding:12px;border-radius:9px;position:fixed;bottom:15px;left:5%;width:90%;text-align:center}
+@media(max-width:750px){.stats{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}}
+@media(max-width:450px){.list{grid-template-columns:1fr}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<h1>⚗️ ChemSafe School</h1>
+<p>Hệ thống mô phỏng quản lý tủ hóa chất thông minh</p>
+<span class="badge available">BẢN DEMO</span>
+</div>
+</header>
+
+<main>
+<div class="notice">
+<strong>Lưu ý:</strong> Đây là website mô phỏng phục vụ dự án học sinh. Chức năng RFID, vân tay, cảm biến cân và khóa điện tử chưa được kết nối phần cứng thật.
+</div>
+
+<div class="stats">
+<div class="card"><div class="label">Tổng hóa chất</div><div class="number" id="total">4</div></div>
+<div class="card"><div class="label">Có trong tủ</div><div class="number" id="availableCount">3</div></div>
+<div class="card"><div class="label">Đang được mượn</div><div class="number" id="borrowedCount">1</div></div>
+<div class="card"><div class="label">Trạng thái tủ</div><div class="number" style="font-size:20px">Đã khóa</div></div>
+</div>
+
+<div class="columns">
+<div>
+<section class="panel">
+<h2>🧪 Danh mục hóa chất</h2>
+<input id="search" placeholder="Tìm hóa chất hoặc mã..." aria-label="Tìm hóa chất">
+<div class="list" id="chemicalList"></div>
+</section>
+
+<section class="panel">
+<h2>📋 Nhật ký hoạt động</h2>
+<button class="secondary" id="clearLogs">Xóa nhật ký</button>
+<div id="logs"></div>
+</section>
+</div>
+
+<div>
+<section class="panel">
+<h2>🔐 Xác thực người dùng</h2>
+<label for="person">Họ và tên</label>
+<input id="person" placeholder="Nhập họ và tên" maxlength="60">
+
+<label for="role">Vai trò</label>
+<select id="role">
+<option>Học sinh</option>
+<option>Giáo viên</option>
+<option>Quản trị viên</option>
+</select>
+
+<label for="auth">Phương thức xác thực mô phỏng</label>
+<select id="auth">
+<option>Mã demo</option>
+<option>RFID mô phỏng</option>
+<option>Vân tay mô phỏng</option>
+</select>
+
+<div class="status">
+<div>🔒 Khóa tủ: Đang khóa</div>
+<div>RFID: Chưa kết nối</div>
+<div>Cảm biến cân: Chưa kết nối</div>
+<div>Cảnh báo: Nhật ký demo</div>
+</div>
+<p class="small">Nhập tên trước khi đăng ký mượn hoặc trả. Đây chưa phải xác thực danh tính thật.</p>
+</section>
+
+<section class="panel">
+<h2>🛡️ Quy tắc an toàn</h2>
+<div class="small">
+<p>• Chỉ sử dụng hóa chất khi được giáo viên cho phép.</p>
+<p>• Tuân thủ hướng dẫn và dùng đồ bảo hộ.</p>
+<p>• Không tự ý trộn hóa chất.</p>
+<p>• Ghi nhận đầy đủ việc mượn và hoàn trả.</p>
+</div>
+</section>
+</div>
+</div>
+</main>
+
+<footer>ChemSafe School · Dự án mô phỏng học sinh · Phiên bản 1.0</footer>
+<div id="message" role="status"></div>
+
+<script>
+"use strict";
+
+const chemicals=[
+{id:"CHEM-001",name:"Ethanol 95%",place:"Kệ A - Ô 01",type:"Dung môi dễ cháy",icon:"🧴",state:"in"},
+{id:"CHEM-002",name:"Dung dịch NaCl",place:"Kệ A - Ô 02",type:"Dung dịch muối",icon:"🧪",state:"in"},
+{id:"CHEM-003",name:"Dung dịch CuSO₄",place:"Kệ B - Ô 01",type:"Muối vô cơ",icon:"🔵",state:"out",borrower:"Nguyễn Minh Anh"},
+{id:"CHEM-004",name:"Nước cất",place:"Kệ B - Ô 02",type:"Dung dịch thông dụng",icon:"💧",state:"in"}
+];
+
+function escapeHTML(value){
+return String(value).replace(/[&<>"']/g,function(c){
+return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+});
+}
+
+function loadLogs(){
+try{
+const data=JSON.parse(localStorage.getItem("chemsafeLogs")||"null");
+if(Array.isArray(data))return data;
+}catch(e){}
+return [{text:"Hệ thống mô phỏng đã khởi động.",time:new Date().toLocaleString("vi-VN")}];
+}
+
+let logs=loadLogs();
+
+function showMessage(text){
+const box=document.getElementById("message");
+box.textContent=text;
+box.style.display="block";
+clearTimeout(showMessage.timer);
+showMessage.timer=setTimeout(function(){box.style.display="none";},2800);
+}
+
+function renderChemicals(){
+const query=document.getElementById("search").value.trim().toLocaleLowerCase("vi");
+const filtered=chemicals.filter(function(c){
+return (c.name+" "+c.id+" "+c.type).toLocaleLowerCase("vi").includes(query);
+});
+
+const list=document.getElementById("chemicalList");
+if(filtered.length===0){
+list.innerHTML='<p class="small">Không tìm thấy hóa chất phù hợp.</p>';
+}else{
+list.innerHTML=filtered.map(function(c){
+const isIn=c.state==="in";
+return '<article class="chemical">'+
+'<div style="font-size:24px">'+c.icon+'</div>'+
+'<span class="badge '+(isIn?'available':'borrowed')+'">'+(isIn?'Có trong tủ':'Đang được mượn')+'</span>'+
+'<h3>'+escapeHTML(c.name)+'</h3>'+
+'<div class="small">'+escapeHTML(c.id)+'<br>Vị trí: '+escapeHTML(c.place)+'<br>Loại: '+escapeHTML(c.type)+
+(c.borrower?'<br>Người mượn: '+escapeHTML(c.borrower):'')+'</div>'+
+'<button class="'+(isIn?'primary':'secondary')+' full" data-id="'+c.id+'" data-action="'+(isIn?'borrow':'return')+'">'+(isIn?'Đăng ký mượn':'Ghi nhận trả')+'</button>'+
+'</article>';
+}).join("");
+}
+
+document.getElementById("total").textContent=chemicals.length;
+document.getElementById("availableCount").textContent=chemicals.filter(c=>c.state==="in").length;
+document.getElementById("borrowedCount").textContent=chemicals.filter(c=>c.state==="out").length;
+}
+
+function renderLogs(){
+const box=document.getElementById("logs");
+if(!logs.length){
+box.innerHTML='<p class="small">Chưa có hoạt động nào.</p>';
+return;
+}
+box.innerHTML=logs.slice().reverse().map(function(log){
+return '<div class="log">'+escapeHTML(log.text)+'<br><span class="small">'+escapeHTML(log.time)+'</span></div>';
+}).join("");
+}
+
+function addLog(text){
+logs.push({text:text,time:new Date().toLocaleString("vi-VN")});
+logs=logs.slice(-80);
+try{localStorage.setItem("chemsafeLogs",JSON.stringify(logs));}catch(e){}
+renderLogs();
+}
+
+document.getElementById("chemicalList").addEventListener("click",function(event){
+const button=event.target.closest("button[data-id]");
+if(!button)return;
+
+const person=document.getElementById("person").value.trim();
+if(!person){
+showMessage("Vui lòng nhập họ và tên trước.");
+document.getElementById("person").focus();
+return;
+}
+
+const item=chemicals.find(c=>c.id===button.dataset.id);
+if(!item)return;
+
+const role=document.getElementById("role").value;
+const auth=document.getElementById("auth").value;
+
+if(button.dataset.action==="borrow"&&item.state==="in"){
+if(!confirm("Xác nhận đăng ký mượn "+item.name+"?"))return;
+item.state="out";
+item.borrower=person;
+addLog(person+" ("+role+") đăng ký mượn "+item.name+"; xác thực: "+auth+".");
+showMessage("Đã ghi nhận đăng ký mượn trong bản demo.");
+}else if(button.dataset.action==="return"&&item.state==="out"){
+if(!confirm("Xác nhận ghi nhận trả "+item.name+"?"))return;
+addLog(person+" ("+role+") ghi nhận trả "+item.name+"; xác thực: "+auth+".");
+item.state="in";
+delete item.borrower;
+showMessage("Đã ghi nhận trả trong bản demo.");
+}
+renderChemicals();
+});
+
+document.getElementById("search").addEventListener("input",renderChemicals);
+
+document.getElementById("clearLogs").addEventListener("click",function(){
+if(!confirm("Bạn có muốn xóa nhật ký demo không?"))return;
+logs=[];
+try{localStorage.removeItem("chemsafeLogs");}catch(e){}
+renderLogs();
+showMessage("Đã xóa nhật ký.");
+});
+
+renderChemicals();
+renderLogs();
+</script>
+</body>
+</html>
